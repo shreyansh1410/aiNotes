@@ -1,0 +1,60 @@
+# Node dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# TypeScript output
+*.tsbuildinfo  # Incremental compiler build info
+*.d.ts         # Declaration files
+lib/           # Often used for compiled TypeScript output
+es/            # Another common output directory for TypeScript
+esm/           # For ECMAScript modules
+cjs/           # For CommonJS modules
+
+# Testing
+coverage/
+.nyc_output/
+reports/
+test-results/
+
+# Debugging and temp files
+.DS_Store
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.vscode/
+.idea/
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.swp
+*~
+.history
+.cache
+.vite
+.nuxt
+.next
+.angular
+.parcel-cache
+.cache-loader
+.sass-cache
+
+# Package manager specific
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-shrinkwrap.json
+
+# ... (rest of the comprehensive .gitignore as before) ...
+
+# Optional: TypeScript-specific exclusions (in case you have these in your project)
+/tsconfig.tsbuildinfo # If you have this at the root level
+/tslint.json # If you are using tslint (though eslint is more common now)
