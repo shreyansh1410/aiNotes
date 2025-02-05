@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import axios from "axios";
+import { authService } from "../services/api";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -25,8 +25,7 @@ const Login: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      // Implement login logic
-      const res = await axios.post("/api/auth/login", data);
+      const res = await authService.login(data.email, data.password);
       toast.success("Login Successful");
       localStorage.setItem("token", res.data.token);
       navigate("/");

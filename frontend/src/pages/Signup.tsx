@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import axios from "axios";
+import { authService } from "../services/api";
 
 const signupSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -27,7 +27,11 @@ const Signup: React.FC = () => {
   const onSubmit = async (data: SignupFormData) => {
     try {
       // Implement signup logic
-      const response = await axios.post("/api/auth/signup", data);
+      const res = await authService.signup(
+        data.username,
+        data.email,
+        data.password
+      );
       toast.success("Account Created Successfully");
       navigate("/login");
     } catch (error) {
