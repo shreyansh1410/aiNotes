@@ -55,7 +55,9 @@ app.use(
 );
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);
-
+app.get("/ping", (req: Request, res: Response) => {
+  res.status(200).send("Server is alive");
+});
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World");
 });

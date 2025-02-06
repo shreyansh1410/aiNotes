@@ -1,0 +1,21 @@
+name: Keep CareerCarve Server Active
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # Runs every 10 minutes
+
+jobs:
+  ping_api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send GET request to CareerCarve Server
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" $VITE_VERCEL_RENDER_API/ping)
+          if [ "$response" -eq 200 ]; then
+            echo "Ping successful"
+          else
+            echo "Ping failed with status code $response"
+            exit 1
+          fi
+        env:
+          VITE_VERCEL_RENDER_API: ${{ secrets.VITE_VERCEL_RENDER_API }}
