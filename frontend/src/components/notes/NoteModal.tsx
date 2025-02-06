@@ -25,7 +25,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const { createNote, updateNote } = useNotesStore();
+  const { createNote, updateNote, toggleFavorite } = useNotesStore();
   const { transcript, isListening, startListening, stopListening } =
     useSpeechRecognition();
 
@@ -60,11 +60,19 @@ const NoteModal: React.FC<NoteModalProps> = ({
 
     try {
       setIsUploading(true);
-      const { imageUrl } = await notesService.uploadImage(file);
-      setImageUrl(imageUrl);
+      const formData = new FormData();
+      formData.append("image", file);
 
+      const response = await notesService.uploadImage(file);
+      const uploadedImageUrl = response.imageUrl;
+      setImageUrl(uploadedImageUrl);
+
+      // If editing, update the note immediately with the new image URL
       if (isEditing && note?._id) {
-        await updateNote(note._id, { ...note, imageUrl });
+        await updateNote(note._id, {
+          ...note,
+          imageUrl: uploadedImageUrl,
+        });
       }
 
       toast.success("Image uploaded successfully");
@@ -83,12 +91,15 @@ const NoteModal: React.FC<NoteModalProps> = ({
         title,
         content,
         isAudioNote: false,
-        imageUrl,
+        imageUrl: imageUrl, // Explicitly include imageUrl
         isFavorite: note?.isFavorite || false,
       };
 
       if (isEditing && note?._id) {
-        await updateNote(note._id, noteData);
+        await updateNote(note._id, {
+          ...note,
+          ...noteData,
+        });
         toast.success("Note updated successfully");
       } else {
         await createNote(noteData);
@@ -167,9 +178,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
               {note && (
                 <button
                   type="button"
-                  onClick={() =>
-                    updateNote(note._id, { isFavorite: !note.isFavorite })
-                  }
+                  onClick={() => toggleFavorite(note._id)}
                   className={`p-2 rounded ${
                     note.isFavorite ? "bg-yellow-500" : "bg-gray-200"
                   }`}
@@ -179,12 +188,16 @@ const NoteModal: React.FC<NoteModalProps> = ({
               )}
             </div>
 
-            {imageUrl && (
+            {imageUrl && !isUploading && (
               <div className="relative">
                 <img
                   src={imageUrl}
                   alt="Note attachment"
                   className="max-h-40 object-contain"
+                  onError={(e) => {
+                    console.error("Preview image failed to load:", imageUrl);
+                    toast.error("Failed to load image preview");
+                  }}
                 />
                 <button
                   type="button"
@@ -193,6 +206,11 @@ const NoteModal: React.FC<NoteModalProps> = ({
                 >
                   <X size={16} />
                 </button>
+              </div>
+            )}
+            {isUploading && (
+              <div className="flex items-center justify-center h-40 bg-gray-50 rounded">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
               </div>
             )}
 

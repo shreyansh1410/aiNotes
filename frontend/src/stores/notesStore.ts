@@ -20,10 +20,10 @@ interface NotesState {
   createNote: (note: Partial<Note>) => Promise<void>;
   updateNote: (id: string, note: Partial<Note>) => Promise<void>;
   deleteNote: (id: string) => Promise<boolean>;
-  favoriteNote: (id: string) => Promise<boolean>;
+  toggleFavorite: (id: string) => Promise<boolean>;
 }
 
-export const useNotesStore = create<NotesState>((set) => ({
+export const useNotesStore = create<NotesState>((set, get) => ({
   notes: [],
   loading: false,
   error: null,
@@ -83,17 +83,23 @@ export const useNotesStore = create<NotesState>((set) => ({
     }
   },
 
-  favoriteNote: async (id) => {
+  toggleFavorite: async (id) => {
     set({ loading: true, error: null });
     try {
-      const response = await notesService.updateNote(id, { isFavorite: true });
+      // Find the current note and get its favorite status using get()
+      const currentNote = get().notes.find((n) => n._id === id);
+      const newFavoriteStatus = !(currentNote?.isFavorite ?? false);
+
+      const response = await notesService.updateNote(id, {
+        isFavorite: newFavoriteStatus,
+      });
       set((state) => ({
         notes: state.notes.map((n) => (n._id === id ? response.data : n)),
         loading: false,
       }));
       return true;
     } catch (error) {
-      set({ error: "Failed to favorite note", loading: false });
+      set({ error: "Failed to update favorite status", loading: false });
       return false;
     }
   },

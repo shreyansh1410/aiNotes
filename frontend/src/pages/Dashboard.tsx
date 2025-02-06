@@ -23,6 +23,8 @@ const NoteCard = ({
   onDelete: (id: string, e: React.MouseEvent) => void;
   onClick: (note: Note) => void;
 }) => {
+  const [imageError, setImageError] = useState(false);
+
   const formatDate = (date: string | Date) => {
     if (!date) return "";
     return new Date(date).toLocaleDateString();
@@ -60,7 +62,7 @@ const NoteCard = ({
         </div>
       </div>
       <p className="text-gray-600 line-clamp-3">{note.content}</p>
-      {note.imageUrl && (
+      {note.imageUrl && !imageError && (
         <div className="mt-2">
           <img
             src={note.imageUrl}
@@ -68,7 +70,7 @@ const NoteCard = ({
             className="max-h-32 w-full object-cover rounded"
             onError={(e) => {
               console.error("Image failed to load:", note.imageUrl);
-              e.currentTarget.style.display = "none";
+              setImageError(true);
             }}
           />
         </div>
@@ -79,13 +81,12 @@ const NoteCard = ({
     </div>
   );
 };
-
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [currentView, setCurrentView] = useState<"all" | "favorites">("all");
-  const { notes, fetchNotes, deleteNote, favoriteNote, loading } =
+  const { notes, fetchNotes, deleteNote, toggleFavorite, loading } =
     useNotesStore();
 
   useEffect(() => {
@@ -119,7 +120,7 @@ const Dashboard = () => {
 
   const handleFavoriteNote = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const success = await favoriteNote(id);
+    const success = await toggleFavorite(id);
     if (success) {
       toast.success("Note updated");
     } else {
