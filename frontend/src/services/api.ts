@@ -32,6 +32,7 @@ export const notesService = {
   deleteNote: (id: string) => api.delete(`/notes/${id}`),
   updateNote: (id: string, note: any) => api.put(`/notes/${id}`, note),
   uploadImage: async (file: File) => {
+    console.log("Uploading file:", file); // Add debug log
     const formData = new FormData();
     formData.append("image", file);
 
@@ -43,6 +44,7 @@ export const notesService = {
       withCredentials: true,
     });
 
+    console.log("Upload response:", response.data); // Add debug log
     return response.data;
   },
 };

@@ -41,12 +41,15 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   createNote: async (note) => {
     set({ loading: true, error: null });
     try {
+      console.log("Creating Note:", note); // Debug log
       const response = await notesService.createNote(note);
+      console.log("Create Note Response:", response.data); // Debug log
       set((state) => ({
         notes: [...state.notes, response.data],
         loading: false,
       }));
     } catch (error) {
+      console.error("Create Note Store Error:", error);
       set({ error: "Failed to create note", loading: false });
       throw error;
     }

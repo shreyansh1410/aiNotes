@@ -7,7 +7,8 @@ interface AuthRequest extends Request {
 
 export const createNote = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, content, isAudioNote, isFavorite } = req.body;
+    const { title, content, isAudioNote, isFavorite, imageUrl } = req.body;
+    console.log("Create Note Request Body:", req.body); // Debug log
 
     const note = new Note({
       title,
@@ -15,12 +16,14 @@ export const createNote = async (req: AuthRequest, res: Response) => {
       user: req.user._id,
       isAudioNote,
       isFavorite,
+      imageUrl, // Explicitly include imageUrl
     });
 
     await note.save();
+    console.log("Saved Note:", note); // Debug log
     res.status(201).json(note);
   } catch (error) {
-    console.error(error);
+    console.error("Create Note Error:", error);
     res.status(500).json({ message: "Error creating note" });
   }
 };

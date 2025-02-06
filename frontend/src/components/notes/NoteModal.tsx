@@ -60,25 +60,20 @@ const NoteModal: React.FC<NoteModalProps> = ({
 
     try {
       setIsUploading(true);
-      const formData = new FormData();
-      formData.append("image", file);
+      console.log("Uploading file:", file);
 
       const response = await notesService.uploadImage(file);
-      const uploadedImageUrl = response.imageUrl;
-      setImageUrl(uploadedImageUrl);
+      console.log("Full upload response:", response);
 
-      // If editing, update the note immediately with the new image URL
-      if (isEditing && note?._id) {
-        await updateNote(note._id, {
-          ...note,
-          imageUrl: uploadedImageUrl,
-        });
-      }
+      const uploadedImageUrl = response.imageUrl;
+      console.log("Extracted image URL:", uploadedImageUrl);
+
+      setImageUrl(uploadedImageUrl);
 
       toast.success("Image uploaded successfully");
     } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Failed to upload image. Please try again.");
+      console.error("Full upload error:", error);
+      toast.error("Failed to upload image");
     } finally {
       setIsUploading(false);
     }
@@ -91,17 +86,15 @@ const NoteModal: React.FC<NoteModalProps> = ({
         title,
         content,
         isAudioNote: false,
-        imageUrl: imageUrl, // Explicitly include imageUrl
+        imageUrl, // Use the state variable directly
         isFavorite: note?.isFavorite || false,
       };
 
       if (isEditing && note?._id) {
-        await updateNote(note._id, {
-          ...note,
-          ...noteData,
-        });
+        await updateNote(note._id, noteData);
         toast.success("Note updated successfully");
       } else {
+        // Explicitly create note with image URL
         await createNote(noteData);
         toast.success("Note created successfully");
       }

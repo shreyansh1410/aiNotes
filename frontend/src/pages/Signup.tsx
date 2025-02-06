@@ -31,8 +31,9 @@ const Signup: React.FC = () => {
         data.email,
         data.password
       );
+      localStorage.setItem("token", res.data.token); // Store token
       toast.success("Account Created Successfully");
-      navigate("/login");
+      navigate("/"); // Redirect to home or dashboard
     } catch (error) {
       toast.error("Signup Failed");
     }
