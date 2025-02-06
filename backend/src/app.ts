@@ -3,8 +3,6 @@ import cors from "cors";
 import connectDB from "./db";
 import authRoutes from "./routes/authRoutes";
 import noteRoutes from "./routes/noteRoute";
-import dotenv from "dotenv";
-import path from "path";
 
 // dotenv.config({ path: path.join(__dirname, "../.env") });
 
@@ -13,7 +11,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://ai-notes-shreyansh.vercel.app",
+  "https://ainotes-mgm1.onrender.com",
+];
 
 app.use(
   cors({

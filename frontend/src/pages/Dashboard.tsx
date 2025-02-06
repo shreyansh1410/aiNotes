@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   PlusIcon,
   HomeIcon,
@@ -6,6 +7,7 @@ import {
   SearchIcon,
   Trash2Icon,
   Music2Icon,
+  LogOutIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNotesStore } from "../stores/notesStore";
@@ -81,6 +83,7 @@ const NoteCard = ({
     </div>
   );
 };
+
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -88,12 +91,13 @@ const Dashboard = () => {
   const [currentView, setCurrentView] = useState<"all" | "favorites">("all");
   const { notes, fetchNotes, deleteNote, toggleFavorite, loading } =
     useNotesStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchNotes();
   }, [fetchNotes]);
 
-  const filteredNotes = notes.filter(
+  const filteredNotes = notes?.filter(
     (note) =>
       (currentView === "all" ||
         (currentView === "favorites" && note.isFavorite)) &&
@@ -101,9 +105,24 @@ const Dashboard = () => {
         note.content.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const handleFavoriteNote = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const success = await toggleFavorite(id);
+    if (success) {
+      toast.success("Note updated");
+    } else {
+      toast.error("Failed to update note");
+    }
+  };
+
   const handleCardClick = (note: Note) => {
     setSelectedNote(note);
     setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedNote(null);
   };
 
   const handleDeleteNote = async (id: string, e: React.MouseEvent) => {
@@ -118,24 +137,15 @@ const Dashboard = () => {
     }
   };
 
-  const handleFavoriteNote = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const success = await toggleFavorite(id);
-    if (success) {
-      toast.success("Note updated");
-    } else {
-      toast.error("Failed to update note");
-    }
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedNote(null);
-  };
-
   const handleCreateNewNote = () => {
     setSelectedNote(null);
     setIsModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    toast.success("Logged out successfully");
+    navigate("/login");
   };
 
   return (
@@ -165,6 +175,13 @@ const Dashboard = () => {
             >
               <StarIcon size={20} />
               <span>Favorites</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 w-full p-2 rounded hover:bg-gray-100 text-red-500 mt-4"
+            >
+              <LogOutIcon size={20} />
+              <span>Logout</span>
             </button>
           </nav>
         </div>
