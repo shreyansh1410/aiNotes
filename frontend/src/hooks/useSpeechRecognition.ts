@@ -13,28 +13,28 @@ export const useSpeechRecognition = () => {
     if (SpeechRecognition) {
       const instance = new SpeechRecognition();
       instance.continuous = true;
-      instance.interimResults = false;
+      instance.interimResults = false; // Only get final results
       instance.lang = "en-US";
 
-      let finalTranscript = "";
+      let accumulatedTranscript = "";
 
       instance.onstart = () => {
         setIsListening(true);
-        finalTranscript = ""; // Reset transcript at start
+        accumulatedTranscript = ""; // Reset accumulated transcript at start
+        setTranscript(""); // Clear displayed transcript
       };
 
       instance.onend = () => {
         setIsListening(false);
-        setTranscript(finalTranscript);
+        setTranscript(accumulatedTranscript.trim()); // Set final transcript when done
       };
 
       instance.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0])
-          .map((result) => result.transcript)
-          .join("");
-
-        setTranscript(transcript);
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            accumulatedTranscript += event.results[i][0].transcript + " ";
+          }
+        }
       };
 
       setRecognition(instance);
@@ -46,7 +46,6 @@ export const useSpeechRecognition = () => {
       }
       if (recordingTimeout) {
         clearTimeout(recordingTimeout);
-        recognition.stop();
       }
     };
   }, []);
@@ -54,9 +53,9 @@ export const useSpeechRecognition = () => {
   const startListening = useCallback(() => {
     if (recognition) {
       try {
-        setTranscript("");
         recognition.start();
 
+        // Set timeout to stop after 60 seconds
         const timeout = setTimeout(() => {
           if (recognition) {
             recognition.stop();
@@ -76,9 +75,12 @@ export const useSpeechRecognition = () => {
   const stopListening = useCallback(() => {
     if (recognition) {
       recognition.stop();
-      setTranscript("");
+      if (recordingTimeout) {
+        clearTimeout(recordingTimeout);
+        setRecordingTimeout(null);
+      }
     }
-  }, [recognition]);
+  }, [recognition, recordingTimeout]);
 
   return {
     isListening,

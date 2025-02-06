@@ -38,18 +38,19 @@ const NoteModal: React.FC<NoteModalProps> = ({
   }, [note]);
 
   useEffect(() => {
-    if (transcript) {
-      setContent((prev) => prev + " " + transcript);
+    if (transcript && !isListening) {
+      // Only update when listening stops
+      setContent((prev) => prev + " " + transcript.trim());
     }
-  }, [transcript]);
+  }, [transcript, isListening]);
 
   const handleSpeechRecognition = () => {
     if (!isListening) {
       startListening();
-      toast("Recording started", { icon: "🎤" });
+      toast("Recording started - will stop after 60 seconds", { icon: "🎤" });
     } else {
       stopListening();
-      toast("Recording stopped", { icon: "✅" });
+      toast("Converting speech to text...", { icon: "⌛" });
     }
   };
 
@@ -65,7 +66,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
       if (isEditing && note?._id) {
         await updateNote(note._id, { ...note, imageUrl });
       }
-      
+
       toast.success("Image uploaded successfully");
     } catch (error) {
       console.error("Upload error:", error);
