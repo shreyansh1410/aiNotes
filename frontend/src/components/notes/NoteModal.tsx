@@ -194,7 +194,7 @@ const NoteModal: React.FC<NoteModalProps> = ({
                   src={imageUrl}
                   alt="Note attachment"
                   className="max-h-40 object-contain"
-                  onError={(e) => {
+                  onError={() => {
                     console.error("Preview image failed to load:", imageUrl);
                     toast.error("Failed to load image preview");
                   }}

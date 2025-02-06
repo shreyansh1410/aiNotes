@@ -68,7 +68,7 @@ const NoteCard = ({
             src={note.imageUrl}
             alt="Note attachment"
             className="max-h-32 w-full object-cover rounded"
-            onError={(e) => {
+            onError={() => {
               console.error("Image failed to load:", note.imageUrl);
               setImageError(true);
             }}
