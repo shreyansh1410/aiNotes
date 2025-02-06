@@ -31,11 +31,12 @@ const Signup: React.FC = () => {
         data.email,
         data.password
       );
-      localStorage.setItem("token", res.data.token); // Store token
+      localStorage.setItem("token", res.data.token);
       toast.success("Account Created Successfully");
-      navigate("/"); // Redirect to home or dashboard
-    } catch (error) {
-      toast.error("Signup Failed");
+      navigate("/");
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || "Signup Failed";
+      toast.error(errorMessage);
     }
   };
 
