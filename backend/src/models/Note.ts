@@ -18,6 +18,10 @@ const noteSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  imageUrl: {
+    type: String,
+    required: false,
+  },
   isFavorite: {
     type: Boolean,
     default: false,

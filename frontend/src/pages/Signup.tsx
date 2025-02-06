@@ -26,7 +26,6 @@ const Signup: React.FC = () => {
 
   const onSubmit = async (data: SignupFormData) => {
     try {
-      // Implement signup logic
       const res = await authService.signup(
         data.username,
         data.email,

@@ -2,12 +2,14 @@ import { create } from "zustand";
 import { notesService } from "../services/api";
 
 export interface Note {
+  _id: string;
   id?: string;
   title: string;
   content: string;
   isAudioNote?: boolean;
   createdAt?: Date;
   isFavorite?: boolean;
+  imageUrl?: string | null;
 }
 
 interface NotesState {
@@ -15,10 +17,10 @@ interface NotesState {
   loading: boolean;
   error: string | null;
   fetchNotes: () => Promise<void>;
-  createNote: (note: Note) => Promise<void>;
+  createNote: (note: Partial<Note>) => Promise<void>;
   updateNote: (id: string, note: Partial<Note>) => Promise<void>;
-  deleteNote: (id: string) => Promise<void>;
-  favoriteNote: (id: string) => Promise<void>;
+  deleteNote: (id: string) => Promise<boolean>;
+  favoriteNote: (id: string) => Promise<boolean>;
 }
 
 export const useNotesStore = create<NotesState>((set) => ({
@@ -46,6 +48,7 @@ export const useNotesStore = create<NotesState>((set) => ({
       }));
     } catch (error) {
       set({ error: "Failed to create note", loading: false });
+      throw error;
     }
   },
 
@@ -55,12 +58,13 @@ export const useNotesStore = create<NotesState>((set) => ({
       const response = await notesService.updateNote(id, note);
       set((state) => ({
         notes: state.notes.map((n) =>
-          n.id === id ? { ...n, ...response.data } : n
+          n._id === id ? { ...n, ...response.data } : n
         ),
         loading: false,
       }));
     } catch (error) {
       set({ error: "Failed to update note", loading: false });
+      throw error;
     }
   },
 
@@ -69,11 +73,13 @@ export const useNotesStore = create<NotesState>((set) => ({
     try {
       await notesService.deleteNote(id);
       set((state) => ({
-        notes: state.notes.filter((note) => note.id !== id),
+        notes: state.notes.filter((note) => note._id !== id),
         loading: false,
       }));
+      return true;
     } catch (error) {
       set({ error: "Failed to delete note", loading: false });
+      return false;
     }
   },
 
@@ -82,11 +88,13 @@ export const useNotesStore = create<NotesState>((set) => ({
     try {
       const response = await notesService.updateNote(id, { isFavorite: true });
       set((state) => ({
-        notes: state.notes.map((n) => (n.id === id ? response.data : n)),
+        notes: state.notes.map((n) => (n._id === id ? response.data : n)),
         loading: false,
       }));
+      return true;
     } catch (error) {
       set({ error: "Failed to favorite note", loading: false });
+      return false;
     }
   },
 }));

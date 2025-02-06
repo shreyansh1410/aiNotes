@@ -1,61 +1,88 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 
-export const useSpeechRecognition = (maxDuration = 60000) => {
-  const [transcript, setTranscript] = useState("");
+export const useSpeechRecognition = () => {
   const [isListening, setIsListening] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState("");
+  const [recognition, setRecognition] = useState<any>(null);
+  const [recordingTimeout, setRecordingTimeout] =
+    useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    let recognition: any = null;
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const instance = new SpeechRecognition();
+      instance.continuous = true;
+      instance.interimResults = false;
+      instance.lang = "en-US";
 
-    if (!SpeechRecognition) {
-      setError("Speech recognition not supported");
-      return;
+      let finalTranscript = "";
+
+      instance.onstart = () => {
+        setIsListening(true);
+        finalTranscript = ""; // Reset transcript at start
+      };
+
+      instance.onend = () => {
+        setIsListening(false);
+        setTranscript(finalTranscript);
+      };
+
+      instance.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result) => result.transcript)
+          .join("");
+
+        setTranscript(transcript);
+      };
+
+      setRecognition(instance);
     }
-
-    recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onresult = (event: any) => {
-      const current = event.resultIndex;
-      const transcript = event.results[current][0].transcript;
-      setTranscript(transcript);
-    };
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = (event: any) => {
-      setError(`Speech recognition error: ${event.error}`);
-      setIsListening(false);
-    };
 
     return () => {
       if (recognition) {
         recognition.stop();
       }
+      if (recordingTimeout) {
+        clearTimeout(recordingTimeout);
+        recognition.stop();
+      }
     };
-  }, [maxDuration]);
+  }, []);
 
-  const startListening = () => {
-    if (!isListening) {
-      // Start recognition
-    }
-  };
+  const startListening = useCallback(() => {
+    if (recognition) {
+      try {
+        setTranscript("");
+        recognition.start();
 
-  const stopListening = () => {
-    if (isListening) {
-      // Stop recognition
+        const timeout = setTimeout(() => {
+          if (recognition) {
+            recognition.stop();
+          }
+        }, 60000); // 60 seconds
+
+        setRecordingTimeout(timeout);
+      } catch (error) {
+        if ((error as any).message === "Already recording") {
+          recognition.stop();
+          setTimeout(() => recognition.start(), 100);
+        }
+      }
     }
-  };
+  }, [recognition]);
+
+  const stopListening = useCallback(() => {
+    if (recognition) {
+      recognition.stop();
+      setTranscript("");
+    }
+  }, [recognition]);
 
   return {
-    transcript,
     isListening,
-    error,
+    transcript,
     startListening,
     stopListening,
   };

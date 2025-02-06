@@ -7,9 +7,9 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
-// Add request interceptor to attach token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -31,6 +31,20 @@ export const notesService = {
   createNote: (note: any) => api.post("/notes", note),
   deleteNote: (id: string) => api.delete(`/notes/${id}`),
   updateNote: (id: string, note: any) => api.put(`/notes/${id}`, note),
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await axios.post(`${API_URL}notes/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      withCredentials: true,
+    });
+
+    return response.data;
+  },
 };
 
 export default api;
